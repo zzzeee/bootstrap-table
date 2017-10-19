@@ -299,6 +299,8 @@
         sidePagination: 'client', // client or server
         totalRows: 0, // server side need to set
         pageNumber: 1,
+        showInputPagination: false, //自定义
+        showInputPagination: false, //自定义
         pageSize: 10,
         pageList: [10, 25, 50, 100],
         paginationHAlign: 'right', //right, left
@@ -1404,7 +1406,7 @@
             html.push('</span>');
 
             html.push('</div>',
-                '<div class="pull-' + this.options.paginationHAlign + ' pagination">',
+                '<div class="pull-' + this.options.paginationHAlign + ' pagination form-inline">',
                 '<ul class="pagination' + sprintf(' pagination-%s', this.options.iconSize) + '">',
                 '<li class="page-pre"><a href="#">' + this.options.paginationPreText + '</a></li>');
 
@@ -1484,9 +1486,20 @@
                 }
             }
 
+            // 自定义 start
+            var inputPagination = '';
+            if(this.options.showInputPagination) {
+                inputPagination = '<span class="inputPaginationTitle">跳转至: 第</span>' +
+                    '<input class="form-control marginLR4 inputPagination" type="text">' +
+                    '<span>页</span>' +
+                    '<button class="btn btn-default btn-sm marginLR4 btnInputPagination">确定</button>';
+            }
+            // 自定义 end
+
             html.push(
                 '<li class="page-next"><a href="#">' + this.options.paginationNextText + '</a></li>',
                 '</ul>',
+                inputPagination,    //自定义
                 '</div>');
         }
         this.$pagination.html(html.join(''));
@@ -1498,6 +1511,12 @@
             $next = this.$pagination.find('.page-next');
             $last = this.$pagination.find('.page-last');
             $number = this.$pagination.find('.page-number');
+            // 自定义 start
+            var $inputBtn = this.$pagination.find('.btnInputPagination');
+            var $inputPag = this.$pagination.find('.inputPagination');
+            var inputWidth = Math.ceil(this.totalPages / 10) * 8 + 10;
+            $($inputPag).width(inputWidth);
+            // 自定义 end
 
             if (this.options.smartDisplay) {
                 if (this.totalPages <= 1) {
@@ -1529,6 +1548,45 @@
             $next.off('click').on('click', $.proxy(this.onPageNext, this));
             $last.off('click').on('click', $.proxy(this.onPageLast, this));
             $number.off('click').on('click', $.proxy(this.onPageNumber, this));
+            // 自定义
+            $inputPag.off('keyup').on('keyup', function() {
+                that.inputPageInput($inputPag, that);
+            });
+            $inputBtn.off('click').on('click', $.proxy(this.onPageInput, this));
+        }
+    };
+
+    // 自定义
+    BootstrapTable.prototype.onPageInput = function (element) {
+        var inputNumber = parseInt(this.options.inputPageNumber) || 0; 
+        if(inputNumber > 0 && inputNumber <= this.totalPages) {
+            this.options.pageNumber = inputNumber;
+            $('ul.pagination > li').removeClass('active');
+            $('ul.pagination > li').each(function(index, item) {
+                var number = parseInt($(item).find('a').text()) || 0;
+                if(number == inputNumber) $(item).addClass('active');
+            });
+            this.updatePagination(null);
+        }
+    };
+
+    // 自定义
+    BootstrapTable.prototype.inputPageInput = function (element, that) {
+        var _val_ = $(element).val();
+        if(_val_) {
+            if(isNaN(_val_) || (!isNaN(_val_) && _val_.indexOf('.') >= 0)) {
+                _val_ = parseInt(_val_) || 1;
+                that.options.inputPageNumber = _val_;
+                $(element).val(_val_);
+            }else if(_val_ > that.totalPages) {
+                that.options.inputPageNumber = that.totalPages;
+                $(element).val(that.totalPages);
+            }else if(_val_ < 1) {
+                that.options.inputPageNumber = 1;
+                $(element).val(1);
+            }else {
+                that.options.inputPageNumber = _val_;
+            }
         }
     };
 
