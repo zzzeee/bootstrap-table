@@ -299,7 +299,7 @@
         sidePagination: 'client', // client or server
         totalRows: 0, // server side need to set
         pageNumber: 1,
-        showInputPagination: false, //自定义
+        inputPageNumber: 1, //自定义
         showInputPagination: false, //自定义
         pageSize: 10,
         pageList: [10, 25, 50, 100],
